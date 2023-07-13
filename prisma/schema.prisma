@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+
+model Persona{
+  id        Int      @id @default(autoincrement())
+  externalId String   @unique @default(uuid())
+  nombre    String
+  apellido  String
+  identificacion     String   @unique
+  password  String
+  telefono  String
+  direccion String
+  cuenta   Cuenta?
+  docente Docente?
+  estudiante Estudiante?
+}
+
+model Cuenta{
+  id        Int      @id @default(autoincrement())
+  externalId String   @unique @default(uuid())
+  correo String @unique
+  clave String
+  persona   Persona  @relation(fields: [personaId], references: [id])
+  personaId Int @unique
+}
+
+model Rol{
+  id        Int      @id @default(autoincrement())
+  externalId String   @unique @default(uuid())
+  nombre    String
+  descripcion String  
+}
+
+model Docente {
+  id        Int      @id @default(autoincrement())
+  externalId String   @unique @default(uuid())
+  titulo String
+  persona   Persona  @relation(fields: [personaId], references: [id])
+  personaId Int @unique
+  registroTutorias RegistroTutorias?
+  materia Materia[]
+}
+
+model Estudiante {
+  id        Int      @id @default(autoincrement())
+  externalId String   @unique @default(uuid())
+  ciclo String
+  paralelo String
+  carrera String
+  persona   Persona  @relation(fields: [personaId], references: [id])
+  personaId Int @unique
+}
+
+model RegistroTutorias{
+  id        Int      @id @default(autoincrement())
+  externalId String   @unique @default(uuid())
+  periodoAcademico String
+  docente  Docente  @relation(fields: [docenteId], references: [id])
+  docenteId Int @unique
+  tutorias Tutoria[]
+}
+
+model Tutoria{
+  id        Int      @id @default(autoincrement())
+  externalId String   @unique @default(uuid())
+  fecha String
+  duracion DateTime
+  estado String
+  nombreTutoria String
+  descripcion String
+  registroTutorias RegistroTutorias  @relation(fields: [registroTutoriasId], references: [id])
+  registroTutoriasId Int @unique
+  materia Materia  @relation(fields: [materiaId], references: [id])
+  materiaId Int @unique
+}
+
+model Materia{
+  id        Int      @id @default(autoincrement())
+  externalId String   @unique @default(uuid())
+  nombre String
+  docente  Docente  @relation(fields: [docenteId], references: [id])
+  docenteId Int @unique
+  tutoria Tutoria[]
+}
