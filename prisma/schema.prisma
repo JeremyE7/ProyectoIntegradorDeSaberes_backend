@@ -17,7 +17,6 @@ model Persona{
   nombre    String
   apellido  String
   identificacion     String   @unique
-  password  String
   telefono  String
   direccion String
   cuenta   Cuenta?
@@ -32,6 +31,8 @@ model Cuenta{
   clave String
   persona   Persona  @relation(fields: [personaId], references: [id])
   personaId Int @unique
+  rol Rol @relation(fields: [rolId], references: [id])
+  rolId Int @unique
 }
 
 model Rol{
@@ -39,6 +40,7 @@ model Rol{
   externalId String   @unique @default(uuid())
   nombre    String
   descripcion String  
+  cuenta Cuenta[]
 }
 
 model Docente {
