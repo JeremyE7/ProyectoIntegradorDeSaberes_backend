@@ -31,8 +31,8 @@ model Cuenta{
   clave String
   persona   Persona  @relation(fields: [personaId], references: [id])
   personaId Int @unique
-  rol Rol @relation(fields: [rolId], references: [id])
-  rolId Int @unique
+  rol_id Int 
+  rol Rol @relation(fields: [rol_id], references: [id])
 }
 
 model Rol{
@@ -83,7 +83,7 @@ model Tutoria{
   registroTutorias RegistroTutorias  @relation(fields: [registroTutoriasId], references: [id])
   registroTutoriasId Int @unique
   materia Materia  @relation(fields: [materiaId], references: [id])
-  materiaId Int @unique
+  materiaId Int
 }
 
 model Materia{

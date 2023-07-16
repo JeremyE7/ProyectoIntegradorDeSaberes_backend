@@ -16,7 +16,7 @@ export const determinarTipoPersona = (req) => {
                 clave: req.body.clave,
                 rol: {
                     connect: {
-                        nombre: req.body.rol
+                        id: req.body.rol
                     }
                 }
             }
@@ -26,13 +26,7 @@ export const determinarTipoPersona = (req) => {
     if (docente) {
         personaData.docente = {
             create: {
-                codigo: docente.codigo,
-                grado: docente.grado,
-                materia: {
-                    connect: {
-                        nombre: docente.materia
-                    }
-                }
+                titulo: docente.titulo,
             }
         };
     }
@@ -40,8 +34,9 @@ export const determinarTipoPersona = (req) => {
     if (estudiante) {
         personaData.estudiante = {
             create: {
-                codigo: estudiante.codigo,
-                grado: estudiante.grado
+                ciclo: estudiante.ciclo,
+                paralelo: estudiante.paralelo,
+                carrera: estudiante.carrera,
             }
         };
     }
@@ -59,7 +54,9 @@ export const validarFormatoRegistro =  (req) => {
         direccion: Joi.string().required(),
         telefono: Joi.string().required(),
         clave: Joi.string().required(),
-        rol: Joi.string().required()
+        rol: Joi.number().integer().required(),
+        docente: Joi.object().optional(),
+        estudiante: Joi.object().optional()
     })
 
     return schema.validate(req.body);;

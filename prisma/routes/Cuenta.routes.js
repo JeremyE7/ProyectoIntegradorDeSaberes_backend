@@ -22,7 +22,12 @@ router.post('/cuenta/registrar', (req, res) => {
 
     prisma.persona
         .create({
-            data: personaData
+            data: personaData,
+            include: {
+                cuenta: true,
+                docente: true,
+                estudiante: true,
+              },
         })
         .then((data) => {
             res.json(data);
