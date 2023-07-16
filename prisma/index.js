@@ -4,10 +4,10 @@ import cuentaRoutes from './routes/Cuenta.routes.js'
 import docenteRoutes from './routes/Docente.routes.js'
 import estudianteRoutes from './routes/Estudiante.routes.js'
 import materiaRoutes from './routes/Materia.routes.js'
-import personaRoutes from '/routes/Persona.routes.js'
-import rolRoutes from '/routes/Rol.routes.js'
-import registroTutoriasRoutes from '/routes/RegistroTutorias.routes.js'
-import tutoriaRoutes from '/routes/Tutoria.routes.js'
+import personaRoutes from './routes/Persona.routes.js'
+import rolRoutes from './routes/Rol.routes.js'
+import registroTutoriasRoutes from './routes/RegistroTutorias.routes.js'
+import tutoriaRoutes from './routes/Tutoria.routes.js'
 
 const app = express()
 
