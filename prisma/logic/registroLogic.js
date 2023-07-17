@@ -55,8 +55,14 @@ export const validarFormatoRegistro =  (req) => {
         telefono: Joi.string().required(),
         clave: Joi.string().required(),
         rol: Joi.number().integer().required(),
-        docente: Joi.object().optional(),
-        estudiante: Joi.object().optional()
+        docente: Joi.object({
+            titulo: Joi.string().required(),
+        }).optional(),
+        estudiante: Joi.object({
+            ciclo: Joi.string().required(),
+            paralelo: Joi.string().required(),
+            carrera: Joi.string().required(),
+        }).optional()
     })
 
     return schema.validate(req.body);;
