@@ -5,9 +5,10 @@ import bcrypt from "bcrypt";
  * @param {Cuerpo de la peticion} req 
  * @returns el objeto persona con los datos de la persona y los datos de estudiante o docente en caso de que se haya enviado
  */
-export const determinarTipoPersona = (req) => {
+export const determinarTipoPersona = async (req) => {
 
     const { docente, estudiante } = req.body;
+    const claveHashed = await bcrypt.hash(req.body.clave, 10)
 
     const personaData = {
         nombre: req.body.nombre,
@@ -18,7 +19,7 @@ export const determinarTipoPersona = (req) => {
         cuenta: {
             create: {
                 correo: req.body.correo,
-                clave: bcrypt.hash(req.body.clave),
+                clave: claveHashed,
                 rol: {
                     connect: {
                         id: req.body.rol

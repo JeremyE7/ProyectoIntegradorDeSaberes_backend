@@ -1,10 +1,13 @@
 import { Router } from "express";
 import { prisma } from "../db.js";
 import { determinarTipoPersona, validarFormatoRegistro } from "../logic/registroLogic.js";
+import { excluirCampos } from "../logic/exclusionLogic.js";
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 const router = Router();
 
-router.post('/cuenta/registrar', (req, res) => {
+router.post('/cuenta/registrar', async (req, res) => {
 
     //Verificar que no se intente crear una cuenta de tipo docente y estudiante a la vez
     const { docente, estudiante } = req.body;
@@ -17,8 +20,8 @@ router.post('/cuenta/registrar', (req, res) => {
         // Si hay un error de validación, se responde con un mensaje de error
         return res.status(400).json({msj: "Hace falta un campo en la peticion", error: error.details[0].message });
     }
-
-    const personaData = determinarTipoPersona(req);
+    
+    const personaData = await determinarTipoPersona(req);
 
     prisma.persona
         .create({
@@ -30,6 +33,7 @@ router.post('/cuenta/registrar', (req, res) => {
               },
         })
         .then((data) => {
+            data = excluirCampos(data, ['id', 'cuenta.id', 'docente.id', 'estudiante.id', 'cuenta.rol_id', 'cuenta.personaId', 'docente.personaId', 'estudiante.personaId']);
             res.json({msj: "OK", data: data});
         })
         .catch((error) => {
@@ -54,16 +58,28 @@ router.post('/cuenta/login', (req, res) => {
                 }
             }
         }
-    }).then((usuario) => {
-        // claveCorrecta = !usuario ? false : bcrypt.compare(clave, usuario.clave).then((result) => {
-        //     return result;
-        // })
+    }).then(async (usuario) => {
 
-        const claveCorrecta = !usuario ? false : clave == usuario.clave;
+        const claveCorrecta = !usuario ? false : await bcrypt.compare(clave, usuario.clave)
+        if(!(usuario && claveCorrecta)) return res.status(401).json({error: 'Credenciales incorrectas'});
+
+        usuario = excluirCampos(usuario, [
+            'id', 'rol_id', 'personaId', 'persona.id', 'persona.docente.personaId', 'persona.estudiante.personaId', 'persona.docente.id', 'persona.estudiante.id', 'rol.id']);
         
-        if(!claveCorrecta) return res.status(401).json({error: 'Credenciales incorrectas'});
+        const parametrosToken = {
 
-        return res.json({msj: "OK", usuario: usuario})
+            id: usuario.persona.id,
+            usuario: usuario,
+            exp: Math.floor(Date.now() / 1000) + (60 * 60),
+            
+        }
+
+        const token = jwt.sign(parametrosToken, process.env.SECRET_KEY, {
+            expiresIn: 60*60*24
+        })
+
+
+        return res.json({msj: "OK", usuario: usuario, token: 'Bearer ' + token})
     })
 
 })
