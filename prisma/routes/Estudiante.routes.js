@@ -16,8 +16,7 @@ router.get("/estudiante/listar",async(req, res)=>{
 })
 
 router.get("/estudiante/obtener/:external", async(req,res)=>{
-    req.params.external
-    const estudiante = await prisma.estudiante.findUnique({
+    var estudiante = await prisma.estudiante.findUnique({
         where : {
             externalId: req.params.external     
         },
@@ -26,7 +25,32 @@ router.get("/estudiante/obtener/:external", async(req,res)=>{
         }
     });
     if(!estudiante) return res.status(200).json({msg: "Estudiante no encontrado"});
-    estudiante = excluirCampos(estudiantes,['id','personaId','persona.id'])
-    return res.json(rol);
+    estudiante = excluirCampos(estudiante,['id','personaId','persona.id'])
+    return res.json(estudiante);
+})
+
+/**
+ * Ruta para buscar estudiantes por parametro
+ */
+router.get("/estudiante/buscar/:tipo/:parametro",async(req, res)=>{
+    var estudiante
+    switch (req.params.tipo) {
+        case "identificacion":
+            estudiante = await prisma.estudiante.findMany({
+                where: {persona:{identificacion:req.params.parametro}},
+                include:{persona:true}
+            })
+            break
+        case "nombre":
+            estudiante = await prisma.estudiante.findMany({
+                where: {persona:{nombre:{startsWith:req.params.parametro}}},
+                include:{persona:true}
+            })
+            break;
+        default:
+            return res.json({msg:"Parametro no valido"})           
+    }
+    console.log(estudiante)
+    return (estudiante) ? res.json(excluirCampos(estudiante,['id','personaId','persona.id'])) : res.json({msg:"Estudiante no encontrado"})
 })
 export default router;

@@ -14,4 +14,18 @@ router.get("/docente/listar",async(req, res)=>{
     return res.json({msg: "Ok", data: docentes})
 })
 
+router.get("/docente/obtener/:external", async(req,res)=>{
+    var docente = await prisma.docente.findUnique({
+        where : {
+            externalId: req.params.external     
+        },
+        include:{
+            persona: true
+        }
+    });
+    if(!docente) return res.status(200).json({msg: "Estudiante no encontrado"});
+    docente = excluirCampos(docente,['id','personaId','persona.id'])
+    return res.json(docente);
+})
+
 export default router;
