@@ -1,10 +1,13 @@
 import _ from "lodash"
-
-export const excluirID = (res, campos)=>{
+/**
+ * Metodo para excluir campos de una lista de objetos
+ * @param {Lista de objetos} res 
+ * @param {Campos a excluir} campos 
+ * @returns Respuesta con los campos excluidos
+ */
+export const excluirCampos = (res, campos)=>{
     for(const dato of res){
-        for(const campo of campos){
-            _.unset(dato,campo)
-        }
+        res = _.omit(dato, campos)
     }
     return res    
 }

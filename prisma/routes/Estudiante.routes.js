@@ -1,17 +1,17 @@
 import { Router } from "express";
 import { prisma } from "../db.js";
-import { excluirID } from "../logic/exclusionLogic.js";
+import { excluirCampos } from "../logic/exclusionLogic.js";
 
 
 const router = Router();
 
 router.get("/estudiante/listar",async(req, res)=>{
-    var estudiantes = await prisma.estudiante.findMany({
+    var estudiantes = await prisma.estudiante.findFirst({
         include:{
             persona: true
         }
     })
-    estudiantes =  excluirID(estudiantes,['id','personaId','persona.id'])
+    estudiantes =  excluirCampos(estudiantes,['id','personaId','persona.id'])
     return res.json({msg: "Ok", data: estudiantes})
 })
 

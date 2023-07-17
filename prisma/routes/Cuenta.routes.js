@@ -38,5 +38,4 @@ router.post('/cuenta/registrar', (req, res) => {
         });
 });
 
-
 export default router;
