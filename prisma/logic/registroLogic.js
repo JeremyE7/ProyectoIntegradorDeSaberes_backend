@@ -1,5 +1,10 @@
 import Joi from "joi";
-
+import bcrypt from "bcrypt";
+/**
+ * Metodo para comprobar comprobar si la persona sera de tipo estudiante, docente, o ninguno de los dos y 
+ * @param {Cuerpo de la peticion} req 
+ * @returns el objeto persona con los datos de la persona y los datos de estudiante o docente en caso de que se haya enviado
+ */
 export const determinarTipoPersona = (req) => {
 
     const { docente, estudiante } = req.body;
@@ -13,7 +18,7 @@ export const determinarTipoPersona = (req) => {
         cuenta: {
             create: {
                 correo: req.body.correo,
-                clave: req.body.clave,
+                clave: bcrypt.hash(req.body.clave),
                 rol: {
                     connect: {
                         id: req.body.rol
@@ -44,7 +49,11 @@ export const determinarTipoPersona = (req) => {
     return personaData;
 }
 
-
+/**
+ * Metodo para validar el formato de la peticion de tipo crearPersona
+ * @param {Cuerpo de la peticion de tipo crearPersona} req 
+ * @returns error si el formato es incorrecto
+ */
 export const validarFormatoRegistro =  (req) => {
     const schema = Joi.object({
         nombre: Joi.string().required(),
