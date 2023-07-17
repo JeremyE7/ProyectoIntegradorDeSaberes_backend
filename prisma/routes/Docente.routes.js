@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { prisma } from "../db.js";
 import { excluirCampos } from "../logic/exclusionLogic.js";
+import { validarToken } from "../logic/tokenLogic.js";
 
 const router = Router();
 
-router.get("/docente/listar",async(req, res)=>{
+router.get("/docente/listar",validarToken,async(req, res)=>{
     var docentes = await prisma.docente.findMany({
         include:{
             persona: true
@@ -23,7 +24,7 @@ router.get("/docente/obtener/:external", async(req,res)=>{
             persona: true
         }
     });
-    if(!docente) return res.status(200).json({msg: "Estudiante no encontrado"});
+    if(!docente) return res.status(200).json({msg: "Docente no encontrado"});
     docente = excluirCampos(docente,['id','personaId','persona.id'])
     return res.json(docente);
 })

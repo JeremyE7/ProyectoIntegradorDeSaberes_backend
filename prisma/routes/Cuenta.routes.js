@@ -67,11 +67,7 @@ router.post('/cuenta/login', (req, res) => {
             'id', 'rol_id', 'personaId', 'persona.id', 'persona.docente.personaId', 'persona.estudiante.personaId', 'persona.docente.id', 'persona.estudiante.id', 'rol.id']);
         
         const parametrosToken = {
-
-            id: usuario.persona.id,
-            usuario: usuario,
-            exp: Math.floor(Date.now() / 1000) + (60 * 60),
-            
+            usuario: usuario,            
         }
 
         const token = jwt.sign(parametrosToken, process.env.SECRET_KEY, {
