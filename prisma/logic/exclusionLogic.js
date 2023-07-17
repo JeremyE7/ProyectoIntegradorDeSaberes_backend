@@ -6,8 +6,5 @@ import _ from "lodash"
  * @returns Respuesta con los campos excluidos
  */
 export const excluirCampos = (res, campos)=>{
-    for(const dato of res){
-        res = _.omit(dato, campos)
-    }
-    return res    
+    return (Array.isArray(res)) ? res.map(dato => _.omit(dato, campos)) : _.omit(res, campos)
 }
