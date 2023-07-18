@@ -109,9 +109,6 @@ export const validarFormatoEdicion = (req, cuenta) => {
 };
 
 export const determinarEdicionDocenteEstudiante = (cuenta, req) => {
-    
-    console.log(cuenta);
-
     if (cuenta.persona.docente && req.body.persona.docente)
         return {
             nombre: req.body.persona.nombre,

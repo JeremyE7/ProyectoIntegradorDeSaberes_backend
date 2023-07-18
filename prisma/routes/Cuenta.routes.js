@@ -166,6 +166,8 @@ router.put('/cuenta/:external_id', validarToken, verificarCedulaUnica, async (re
         }
     })
 
+    if(!cuenta) return res.status(400).json({ msj: "Error al editar la cuenta", error: "Cuenta no encontrada" });
+
     prisma.cuenta.update({
         where: {
             externalId: req.params.external_id
@@ -184,7 +186,9 @@ router.put('/cuenta/:external_id', validarToken, verificarCedulaUnica, async (re
         } : {
             correo: req.body.correo,
             clave: req.body.clave,
-            persona: req.body.persona
+            persona: {
+                update: determinarEdicionDocenteEstudiante(cuenta, req)
+            }
         },
         include: {
             rol: true,
@@ -200,7 +204,8 @@ router.put('/cuenta/:external_id', validarToken, verificarCedulaUnica, async (re
             'id', 'rol_id', 'personaId', 'persona.id', 'persona.docente.personaId', 'persona.estudiante.personaId', 'persona.docente.id', 'persona.estudiante.id', 'rol.id'])
         res.json({ msj: "Cuenta editada con exito", data: data });
     }).catch((error) => {
-        if(error.meta.cause.includes("Rol")) return res.status(400).json({ msj: "Error al editar la cuenta", error: "Rol no encontrado" });
+        console.log(error);
+        if(error.meta && error.meta.cause.includes("Rol")) return res.status(400).json({ msj: "Error al editar la cuenta", error: "Rol no encontrado" });
         res.status(500).json({ msj: "Error al editar la cuenta", error: "Cuenta no encontrada" });
     })
 })
