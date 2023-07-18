@@ -1,9 +1,14 @@
+/**
+ * Jeremy
+ */
+
 import { Router } from "express";
 import { prisma } from "../db.js";
-import { determinarTipoPersona, validarFormatoRegistro } from "../logic/registroLogic.js";
+import { determinarTipoPersona, validarFormatoRegistro } from "../logic/cuentaLogic.js";
 import { excluirCampos } from "../logic/exclusionLogic.js";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { validarToken } from "../logic/tokenLogic.js";
 
 const router = Router();
 
@@ -12,16 +17,16 @@ router.post('/cuenta/registrar', async (req, res) => {
 
     //Verificar que no se intente crear una cuenta de tipo docente y estudiante a la vez
     const { docente, estudiante } = req.body;
-    if (docente && estudiante) return res.json({ error: 'Cuenta no puede ser de docente y estudiante al mismo tiempo' })
+    if (docente && estudiante) return res.status(400).json({ msj: "Error en la solicitud", error: 'Cuenta no puede ser de docente y estudiante al mismo tiempo' })
 
     // Valida los campos del cuerpo de la solicitud
     const { error } = validarFormatoRegistro(req);
 
     if (error) {
         // Si hay un error de validación, se responde con un mensaje de error
-        return res.status(400).json({msj: "Hace falta un campo en la peticion", error: error.details[0].message });
+        return res.status(400).json({ msj: "Hace falta un campo en la peticion", error: error.details[0].message });
     }
-    
+
     //Determinar el tipo de persona a registrar y llenar los datos correspondientes
     const personaData = await determinarTipoPersona(req);
 
@@ -33,23 +38,23 @@ router.post('/cuenta/registrar', async (req, res) => {
                 cuenta: true,
                 docente: true,
                 estudiante: true,
-              },
+            },
         })
         .then((data) => {
             data = excluirCampos(data, ['id', 'cuenta.id', 'docente.id', 'estudiante.id', 'cuenta.rol_id', 'cuenta.personaId', 'docente.personaId', 'estudiante.personaId']);
-            res.json({msj: "OK", data: data});
+            res.json({ msj: "OK", data: data });
         })
         .catch((error) => {
             console.log(error);
-            res.status(500).json({ msj: "Error al registrar la cuenta" , error: error});
+            res.status(500).json({ msj: "Error al registrar la cuenta", error: error });
         });
 });
 
 //Ruta para iniciar sesión
 router.post('/cuenta/login', (req, res) => {
-    
+
     //Recuperar el correo y a clave de la solicitud
-    const {correo, clave} = req.body;
+    const { correo, clave } = req.body;
 
     //Buscar la cuenta en la base de datos
     prisma.cuenta.findUnique({
@@ -68,26 +73,106 @@ router.post('/cuenta/login', (req, res) => {
     }).then(async (usuario) => {
         //Si no se encuentra la cuenta, se responde con un mensaje de error
         const claveCorrecta = !usuario ? false : await bcrypt.compare(clave, usuario.clave)
-        if(!(usuario && claveCorrecta)) return res.status(401).json({error: 'Credenciales incorrectas'});
+        if (!(usuario && claveCorrecta)) return res.status(401).json({ error: 'Credenciales incorrectas' });
 
         //Excluir id y campos de relacion de la respuesta
         usuario = excluirCampos(usuario, [
             'id', 'rol_id', 'personaId', 'persona.id', 'persona.docente.personaId', 'persona.estudiante.personaId', 'persona.docente.id', 'persona.estudiante.id', 'rol.id']);
-        
+
         //Indicar los parametros que se tomara de base para crear el token
         const parametrosToken = {
-            usuario: usuario,            
+            usuario: usuario,
         }
 
         //Crear el token
         const token = jwt.sign(parametrosToken, process.env.SECRET_KEY, {
-            expiresIn: 60*60*24
+            expiresIn: 60 * 60 * 24
         })
 
         //Responder con el token y el usuario
-        return res.json({msj: "OK", usuario: usuario, token: 'Bearer ' + token})
+        return res.json({ msj: "OK", usuario: usuario, token: 'Bearer ' + token })
     })
 
+})
+
+router.get('/cuenta', validarToken, (req, res) => {
+    prisma.cuenta.findMany({
+        include: {
+            rol: true,
+            persona: {
+                include: {
+                    docente: true,
+                    estudiante: true
+                }
+            }
+        }
+    }).then((data) => {
+        data = excluirCampos(data, [
+            'id', 'rol_id', 'personaId', 'persona.id', 'persona.docente.personaId', 'persona.estudiante.personaId', 'persona.docente.id', 'persona.estudiante.id', 'rol.id'])
+        res.json({ msj: "OK", data: data });
+    })
+})
+
+router.get('/cuenta/:external_id', validarToken, (req, res) => {
+    prisma.cuenta.findUnique({
+        where: {
+            externalId: req.params.external_id
+        },
+        include: {
+            rol: true,
+            persona: {
+                include: {
+                    docente: true,
+                    estudiante: true
+                }
+            }
+        }
+    }).then((data) => {
+        data = excluirCampos(data, [
+            'id', 'rol_id', 'personaId', 'persona.id', 'persona.docente.personaId', 'persona.estudiante.personaId', 'persona.docente.id', 'persona.estudiante.id', 'rol.id'])
+        res.json({ msj: "OK", data: data });
+    })
+})
+
+router.put('/cuenta/:external_id', validarToken, async (req, res) => {
+
+    if (req.body.clave) req.body.clave = await bcrypt.hash(req.body.clave, 10)
+
+    if (req.body.rol) {
+
+        req.body.rol = await prisma.rol.findUnique({
+            where: {
+                nombre: req.body.rol
+            }
+        })
+
+        if (!req.body.rol) return res.status(400).json({ msj: "Error en la solicitud", error: 'Rol no encontrado' })
+    }
+
+    prisma.cuenta.update({
+        where: {
+            externalId: req.params.external_id
+        },
+        data: req.body.rol ? {
+            correo: req.body.correo,
+            clave: req.body.clave,
+            rol: {
+                connect: {
+                    id: req.body.rol.id
+                }
+            }
+        } : {
+            correo: req.body.correo,
+            clave: req.body.clave
+        },
+        include: {
+            rol: true,
+        }
+    }).then((data) => {
+        data = excluirCampos(data, [
+            'id', 'rol_id', 'personaId', 'persona.id', 'persona.docente.personaId', 'persona.estudiante.personaId', 'persona.docente.id', 'persona.estudiante.id', 'rol.id'])
+        res.json({ msj: "Cuenta editada con exito", data: data });
+    })
 })
 
 export default router;

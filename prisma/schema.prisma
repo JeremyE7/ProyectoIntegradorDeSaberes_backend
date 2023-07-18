@@ -38,7 +38,7 @@ model Cuenta{
 model Rol{
   id        Int      @id @default(autoincrement())
   externalId String   @unique @default(uuid())
-  nombre    String
+  nombre    String @unique
   descripcion String  
   cuenta Cuenta[]
 }
