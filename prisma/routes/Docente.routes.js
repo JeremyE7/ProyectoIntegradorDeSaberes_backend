@@ -15,7 +15,7 @@ router.get("/docente/listar",validarToken,async(req, res)=>{
     return res.json({msg: "Ok", data: docentes})
 })
 
-router.get("/docente/obtener/:external", async(req,res)=>{
+router.get("/docente/obtener/:external", validarToken, async(req,res)=>{
     var docente = await prisma.docente.findUnique({
         where : {
             externalId: req.params.external     

@@ -1,11 +1,12 @@
 import { Router } from "express";
 import { prisma } from "../db.js";
 import { excluirCampos } from "../logic/exclusionLogic.js";
+import { validarToken } from "../logic/tokenLogic.js";
 
 
 const router = Router();
 
-router.get("/estudiante/listar",async(req, res)=>{
+router.get("/estudiante/listar", validarToken, async(req, res)=>{
     var estudiantes = await prisma.estudiante.findMany({
         include:{
             persona: true
@@ -15,7 +16,7 @@ router.get("/estudiante/listar",async(req, res)=>{
     return res.json({msg: "Ok", data: estudiantes})
 })
 
-router.get("/estudiante/obtener/:external", async(req,res)=>{
+router.get("/estudiante/obtener/:external", validarToken, async(req,res)=>{
     var estudiante = await prisma.estudiante.findUnique({
         where : {
             externalId: req.params.external     
@@ -32,7 +33,7 @@ router.get("/estudiante/obtener/:external", async(req,res)=>{
 /**
  * Ruta para buscar estudiantes por parametro
  */
-router.get("/estudiante/buscar/:tipo/:parametro",async(req, res)=>{
+router.get("/estudiante/buscar/:tipo/:parametro", validarToken, async(req, res)=>{
     var estudiante
     switch (req.params.tipo) {
         case "identificacion":

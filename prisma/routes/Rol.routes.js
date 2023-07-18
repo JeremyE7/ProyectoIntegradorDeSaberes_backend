@@ -1,9 +1,10 @@
 import { Router } from "express";
 import { prisma } from "../db.js";
+import { validarToken } from "../logic/tokenLogic.js";
 
 const router = Router();
 
-router.post("/rol/guardar", async(req, res)=>{
+router.post("/rol/guardar", validarToken, async(req, res)=>{
     try {
         const newRol = await prisma.rol.create({
             data : req.body,
@@ -16,7 +17,7 @@ router.post("/rol/guardar", async(req, res)=>{
     }
 })
 
-router.get("/rol/obtener/:external", async(req, res)=>{
+router.get("/rol/obtener/:external", validarToken, async(req, res)=>{
     req.params.external
     const rol = await prisma.rol.findUnique({
         where : {
@@ -28,7 +29,7 @@ router.get("/rol/obtener/:external", async(req, res)=>{
     return res.json(rol);
 })
 
-router.get("/rol/listar",async(req, res)=>{
+router.get("/rol/listar", validarToken, async(req, res)=>{
     const roles = await prisma.rol.findMany()
     for(const rol of roles){
         delete rol['id']
