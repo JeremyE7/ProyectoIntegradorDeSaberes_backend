@@ -4,12 +4,12 @@
 
 import { Router } from "express";
 import { prisma } from "../db.js";
-import { determinarTipoPersona, validarFormatoRegistro } from "../logic/cuentaLogic.js";
+import { determinarTipoPersona, validarFormatoRegistro, validarFormatoEdicion, determinarEdicionDocenteEstudiante } from "../logic/cuentaLogic.js";
 import { excluirCampos } from "../logic/exclusionLogic.js";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { validarToken } from "../logic/tokenLogic.js";
-
+import { validarToken } from "../middlewares/tokenLogic.js";
+import { verificarCedulaUnica } from "../middlewares/verificarCedulaUnica.js";
 const router = Router();
 
 //Ruta para registrar una nueva cuenta
@@ -134,20 +134,37 @@ router.get('/cuenta/:external_id', validarToken, (req, res) => {
     })
 })
 
-router.put('/cuenta/:external_id', validarToken, async (req, res) => {
+router.put('/cuenta/:external_id', validarToken, verificarCedulaUnica, async (req, res) => {
 
     if (req.body.clave) req.body.clave = await bcrypt.hash(req.body.clave, 10)
 
-    if (req.body.rol) {
+    const { error } = validarFormatoEdicion(req);
 
-        req.body.rol = await prisma.rol.findUnique({
-            where: {
-                nombre: req.body.rol
-            }
-        })
+    if (error) {
+        // Si hay un error de validación, se responde con un mensaje de error personalizado
+        const errorMessage = error.details[0].message || "Error en la validación";
 
-        if (!req.body.rol) return res.status(400).json({ msj: "Error en la solicitud", error: 'Rol no encontrado' })
+        if (error.details[0].type === 'any.invalid') {
+            return res.status(400).json({ msj: "Hace falta un campo en la peticion o algun campo es incorrecto", error: "No se puede tener valores para 'docente' y 'estudiante' al mismo tiempo" });
+        }
+
+        return res.status(400).json({ msj: "Hace falta un campo en la peticion o algun campo es incorrecto", error: errorMessage });
     }
+
+    const cuenta = await prisma.cuenta.findUnique({
+        where: {
+            externalId: req.params.external_id
+        },
+        include: {
+            rol: true,
+            persona: {
+                include: {
+                    docente: true,
+                    estudiante: true
+                }
+            }
+        }
+    })
 
     prisma.cuenta.update({
         where: {
@@ -158,20 +175,33 @@ router.put('/cuenta/:external_id', validarToken, async (req, res) => {
             clave: req.body.clave,
             rol: {
                 connect: {
-                    id: req.body.rol.id
+                    nombre: req.body.rol
                 }
+            },
+            persona: {
+                update: determinarEdicionDocenteEstudiante(cuenta, req)
             }
         } : {
             correo: req.body.correo,
-            clave: req.body.clave
+            clave: req.body.clave,
+            persona: req.body.persona
         },
         include: {
             rol: true,
+            persona: {
+                include: {
+                    docente: true,
+                    estudiante: true
+                }
+            }
         }
     }).then((data) => {
         data = excluirCampos(data, [
             'id', 'rol_id', 'personaId', 'persona.id', 'persona.docente.personaId', 'persona.estudiante.personaId', 'persona.docente.id', 'persona.estudiante.id', 'rol.id'])
         res.json({ msj: "Cuenta editada con exito", data: data });
+    }).catch((error) => {
+        if(error.meta.cause.includes("Rol")) return res.status(400).json({ msj: "Error al editar la cuenta", error: "Rol no encontrado" });
+        res.status(500).json({ msj: "Error al editar la cuenta", error: "Cuenta no encontrada" });
     })
 })
 

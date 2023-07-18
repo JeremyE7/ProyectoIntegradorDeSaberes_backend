@@ -55,7 +55,7 @@ export const determinarTipoPersona = async (req) => {
  * @param {*} req Cuerpo de la peticion de tipo crearPersona
  * @returns error si el formato es incorrecto
  */
-export const validarFormatoRegistro =  (req) => {
+export const validarFormatoRegistro = (req) => {
     const schema = Joi.object({
         nombre: Joi.string().required(),
         apellido: Joi.string().required(),
@@ -77,3 +77,81 @@ export const validarFormatoRegistro =  (req) => {
 
     return schema.validate(req.body);;
 }
+
+export const validarFormatoEdicion = (req, cuenta) => {
+    const schema = Joi.object({
+        correo: Joi.string().email().optional(),
+        clave: Joi.string().optional(),
+        rol: Joi.string().optional(),
+        persona: Joi.object({
+            nombre: Joi.string().optional(),
+            apellido: Joi.string().optional(),
+            telefono: Joi.string().optional(),
+            direccion: Joi.string().optional(),
+            identificacion: Joi.string().optional(),
+            docente: Joi.object({
+                titulo: Joi.string().optional(),
+            }).optional(),
+            estudiante: Joi.object({
+                ciclo: Joi.string().optional(),
+                paralelo: Joi.string().optional(),
+                carrera: Joi.string().optional(),
+            }).optional()
+        }).optional().options({ abortEarly: false })
+    }).custom((value, helpers) => {
+        if (value.persona && value.persona.docente && value.persona.estudiante) {
+            return helpers.error('any.invalid');
+        }
+        return value;
+    });
+
+    return schema.validate(req.body);
+};
+
+export const determinarEdicionDocenteEstudiante = (cuenta, req) => {
+    
+    console.log(cuenta);
+
+    if (cuenta.persona.docente && req.body.persona.docente)
+        return {
+            nombre: req.body.persona.nombre,
+            apellido: req.body.persona.apellido,
+            telefono: req.body.persona.telefono,
+            identificacion: req.body.persona.identificacion,
+            direccion: req.body.persona.direccion,
+            docente: {
+                update: {
+                    titulo: req.body.persona.docente.titulo
+                }
+            }
+        }
+    else if(cuenta.persona.estudiante && req.body.persona.estudiante){
+        return {
+            nombre: req.body.persona.nombre,
+            apellido: req.body.persona.apellido,
+            telefono: req.body.persona.telefono,
+            identificacion: req.body.persona.identificacion,
+            direccion: req.body.persona.direccion,
+            estudiante:{
+                update:{
+                    ciclo: req.body.persona.estudiante.ciclo,
+                    paralelo: req.body.persona.estudiante.paralelo,
+                    carrera: req.body.persona.estudiante.carrera,
+                }
+            }
+        } 
+    }
+    else{
+        return {
+            nombre: req.body.persona.nombre,
+            apellido: req.body.persona.apellido,
+            telefono: req.body.persona.telefono,
+            identificacion: req.body.persona.identificacion,
+            direccion: req.body.persona.direccion,
+        }
+    }
+}
+
+
+
+

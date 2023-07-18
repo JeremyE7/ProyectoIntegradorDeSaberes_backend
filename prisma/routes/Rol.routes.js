@@ -3,7 +3,7 @@
  */
 import { Router } from "express";
 import { prisma } from "../db.js";
-import { validarToken } from "../logic/tokenLogic.js";
+import { validarToken } from "../middlewares/tokenLogic.js";
 
 const router = Router();
 
