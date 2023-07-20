@@ -8,22 +8,20 @@ import personaRoutes from './routes/Persona.routes.js'
 import rolRoutes from './routes/Rol.routes.js'
 import registroTutoriasRoutes from './routes/RegistroTutorias.routes.js'
 import tutoriaRoutes from './routes/Tutoria.routes.js'
-import Cors from 'cors'
 
-const cors = Cors;
 const app = express()
 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Access-Control-Allow-Headers', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS');
+  res.header("Access-Control-Allow-Credentials", '*');
   next();
 });
 
 
 
 app.use(express.json())
-
-app.use(cors())
 
 app.use('/api/v1', cuentaRoutes)
 app.use('/api/v1', docenteRoutes)

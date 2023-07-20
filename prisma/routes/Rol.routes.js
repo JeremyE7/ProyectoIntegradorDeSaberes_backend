@@ -1,13 +1,11 @@
-/**
- * Jainer
- */
+
 import { Router } from "express";
 import { prisma } from "../db.js";
 import { validarToken } from "../middlewares/tokenLogic.js";
 
 const router = Router();
 
-router.post("/rol/guardar", validarToken, async(req, res)=>{
+router.post("/rol/guardar", async(req, res)=>{
     try {
         const newRol = await prisma.rol.create({
             data : req.body,
