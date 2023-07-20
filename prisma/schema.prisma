@@ -61,6 +61,7 @@ model Estudiante {
   carrera String
   persona   Persona  @relation(fields: [personaId], references: [id])
   personaId Int @unique
+  tutoria Tutoria[]
 }
 
 model RegistroTutorias{
@@ -75,15 +76,16 @@ model RegistroTutorias{
 model Tutoria{
   id        Int      @id @default(autoincrement())
   externalId String   @unique @default(uuid())
-  fecha String
-  duracion DateTime
-  estado String
-  nombreTutoria String
-  descripcion String
+  fecha DateTime?
+  duracion DateTime?
+  estado String?
+  nombreTutoria String?
+  descripcion String?
   registroTutorias RegistroTutorias  @relation(fields: [registroTutoriasId], references: [id])
-  registroTutoriasId Int @unique
-  materia Materia  @relation(fields: [materiaId], references: [id])
-  materiaId Int
+  registroTutoriasId Int
+  materia Materia  @relation(fields: [materiaIsd], references: [id])
+  materiaIsd Int
+  estudiantes Estudiante[]
 }
 
 model Materia{
@@ -91,6 +93,6 @@ model Materia{
   externalId String   @unique @default(uuid())
   nombre String
   docente  Docente  @relation(fields: [docenteId], references: [id])
-  docenteId Int @unique
+  docenteId Int 
   tutoria Tutoria[]
 }
