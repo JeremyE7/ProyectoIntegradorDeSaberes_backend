@@ -8,7 +8,11 @@ const router = Router();
 // Obtener todas las tutorías
 router.get('/tutorias', async (req, res) => {
     try {
-        const tutorias = await prisma.tutoria.findMany({ include: { estudiantes: true, materia: true} });
+        const tutorias = await prisma.tutoria.findMany({ include: { estudiantes: {
+            include: {
+                persona: true
+            }
+        }, materia: true} });
         res.json({ msj: "OK", data: tutorias });
     } catch (error) {
         console.error("Error al obtener las tutorías:", error);
@@ -199,6 +203,8 @@ router.put('/tutorias/docente/:external_id', async (req, res) => {
 
 router.put('/tutorias/estado/:external_id', async (req, res) => {
     const { estado } = req.body;
+    console.log(estado);
+    console.log(req.params.external_id);
     try {
         const tutoria = await prisma.tutoria.update({
             where: { externalId: req.params.external_id },
