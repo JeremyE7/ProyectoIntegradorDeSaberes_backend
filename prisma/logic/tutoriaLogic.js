@@ -13,7 +13,7 @@ export const validarFormatoCrearTutoriaEstudiante = (tutoria) => {
 export const validarFormatoCrearTutoriaDocente = (tutoria) => {
     const schema = Joi.object({
         fecha: Joi.date().iso().required(),
-        estado: Joi.string().required(),
+        estado: Joi.string().valid('Espera','Aceptada','Realizada','Cancelada').required(),
         nombreTutoria: Joi.string().required(),
         descripcion: Joi.string().required(),
         duracion: Joi.date().required(),

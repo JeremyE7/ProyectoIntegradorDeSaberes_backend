@@ -8,7 +8,7 @@ const router = Router();
 // Obtener todas las tutorías
 router.get('/tutorias', async (req, res) => {
     try {
-        const tutorias = await prisma.tutoria.findMany({ include: { estudiantes: true } });
+        const tutorias = await prisma.tutoria.findMany({ include: { estudiantes: true, materia: true} });
         res.json({ msj: "OK", data: tutorias });
     } catch (error) {
         console.error("Error al obtener las tutorías:", error);
@@ -135,7 +135,7 @@ router.post('/tutorias/estudiante/:external_id_estudiante', async (req, res) => 
 
         let tutoria = await prisma.tutoria.create({
             data: {
-                estado: "ESPERA",
+                estado: "Espera",
                 registroTutorias: {
                     connect: {
                         id: registro_tutorias.id
@@ -173,6 +173,7 @@ router.post('/tutorias/estudiante/:external_id_estudiante', async (req, res) => 
 router.put('/tutorias/docente/:external_id', async (req, res) => {
 
     const { error } = validarFormatoCrearTutoriaDocente(req.body);
+    console.log(req.body);
 
     if (error) {
         return res.status(400).json({ msj: "Falta algun campo o es incorrecto", error: error.details[0].message });
@@ -187,6 +188,22 @@ router.put('/tutorias/docente/:external_id', async (req, res) => {
                 duracion: duracion,
                 nombreTutoria: nombreTutoria,
                 descripcion: descripcion,
+            }
+        });
+        res.json({ msj: "OK", data: tutoria });
+    } catch (error) {
+        console.error("Error al actualizar la tutoría:", error);
+        res.status(500).json({ msj: "ERROR", error: "Tutoria no actualizada" });
+    }
+});
+
+router.put('/tutorias/estado/:external_id', async (req, res) => {
+    const { estado } = req.body;
+    try {
+        const tutoria = await prisma.tutoria.update({
+            where: { externalId: req.params.external_id },
+            data: {
+                estado: estado,
             }
         });
         res.json({ msj: "OK", data: tutoria });
