@@ -51,6 +51,7 @@ model Docente {
   personaId Int @unique
   registroTutorias RegistroTutorias?
   materia Materia[]
+  tutorias  Tutoria[]
 }
 
 model Estudiante {
@@ -86,6 +87,8 @@ model Tutoria{
   materia Materia  @relation(fields: [materiaId], references: [id])
   materiaId Int
   estudiantes Estudiante[]
+  docente Docente @relation(fields: [docenteId], references: [id])
+  docenteId Int
 }
 
 model Materia{
