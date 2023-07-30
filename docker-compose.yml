@@ -1,0 +1,22 @@
+version: '3'
+services:
+  backend:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=mysql://root:root@db:3306/PISDATABASE
+    command: npx prisma migrate dev && npm run dev
+    depends_on:
+      - db
+
+  db:
+    image: mariadb:latest
+    ports:
+      - "3306:3306"
+    tty: true
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: PISDATABASE
+      MYSQL_WAIT_TIMEOUT: 600  # Tiempo de espera de espera en segundos (10 minutos)
+      MYSQL_INTERACTIVE_TIMEOUT: 600  # Tiempo de espera interactivo en segundos (10 minutos)
