@@ -7,6 +7,7 @@ const router = Router();
 
 // Obtener todas las tutorías
 router.get('/tutorias', async (req, res) => {
+    console.log("hola");
     try {
         const tutorias = await prisma.tutoria.findMany({ include: { estudiantes: {
             include: {
