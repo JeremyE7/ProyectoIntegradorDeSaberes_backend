@@ -77,8 +77,8 @@ model RegistroTutorias{
 model Tutoria{
   id        Int      @id @default(autoincrement())
   externalId String   @unique @default(uuid())
-  fecha DateTime?
-  duracion DateTime?
+  fechaInicio DateTime?
+  fechaFinalizacion DateTime?
   estado String?
   nombreTutoria String?
   descripcion String?

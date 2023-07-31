@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../db.js";
-import { validarFormatoCrearTutoriaDocente, validarFormatoCrearTutoriaEstudiante } from "../logic/tutoriaLogic.js";
+import { validarCambiarEstadoTutoriaDocente, validarFormatoCrearTutoriaDocente, validarFormatoCrearTutoriaEstudiante } from "../logic/tutoriaLogic.js";
 import { excluirCampos } from "../logic/exclusionLogic.js";
 
 const router = Router();
@@ -110,7 +110,7 @@ router.post('/tutorias/estudiante/:external_id_estudiante', async (req, res) => 
             where: {
                 registroTutoriasId: registro_tutorias.id,
                 materiaId: materia.id,
-                estado: "ESPERA",
+                estado: "Espera",
             },
             include: {
                 estudiantes: true
@@ -162,12 +162,15 @@ router.post('/tutorias/estudiante/:external_id_estudiante', async (req, res) => 
                     connect:{
                         id: docente.id
                     }
-                }
+                },
+                nombreTutoria: req.body.nombreTutoria,
+                descripcion: req.body.descripcion,
             },
             include: {
                 materia: true,
                 registroTutorias: true,
-                estudiantes: true
+                estudiantes: true,
+                
             }
         });
 
@@ -182,7 +185,7 @@ router.post('/tutorias/estudiante/:external_id_estudiante', async (req, res) => 
 
 
 // Actualizar una tutoría por external_id para docentes
-router.put('/tutorias/docente/:external_id', async (req, res) => {
+router.put('/tutorias/docente/aceptar/:external_id', async (req, res) => {
 
     const { error } = validarFormatoCrearTutoriaDocente(req.body);
     console.log(req.body);
@@ -190,16 +193,13 @@ router.put('/tutorias/docente/:external_id', async (req, res) => {
     if (error) {
         return res.status(400).json({ msj: "Falta algun campo o es incorrecto", error: error.details[0].message });
     }
-    const { fecha, estado, nombreTutoria, descripcion, duracion } = req.body;
+    const { fecha} = req.body;
     try {
         const tutoria = await prisma.tutoria.update({
             where: { externalId: req.params.external_id },
             data: {
-                fecha: fecha,
-                estado: estado,
-                duracion: duracion,
-                nombreTutoria: nombreTutoria,
-                descripcion: descripcion,
+                fechaInicio: fecha,
+                estado: "Aceptada",
             }
         });
         res.json({ msj: "OK", data: tutoria });
@@ -209,8 +209,13 @@ router.put('/tutorias/docente/:external_id', async (req, res) => {
     }
 });
 
+//Cambiar estado de una tutoria a cancelado o finalizado
 router.put('/tutorias/estado/:external_id', async (req, res) => {
-    const { estado } = req.body;
+    const {error} = validarCambiarEstadoTutoriaDocente(req.body)
+    if (error) {
+        return res.status(400).json({ msj: "Falta algun campo o es incorrecto", error: error.details[0].message });
+    }
+    const { estado, fechaFinalizacion } = req.body;
     console.log(estado);
     console.log(req.params.external_id);
     try {
@@ -218,6 +223,7 @@ router.put('/tutorias/estado/:external_id', async (req, res) => {
             where: { externalId: req.params.external_id },
             data: {
                 estado: estado,
+                fechaFinalizacion: fechaFinalizacion,
             }
         });
         res.json({ msj: "OK", data: tutoria });
