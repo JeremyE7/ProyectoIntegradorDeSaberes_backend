@@ -1,16 +1,25 @@
 version: '3'
 services:
+  frontend:
+    image: jeremye7/pis_frontend:latest
+    ports:
+      - 3006:3006
+    volumes:
+      - ./src:/app/src
+    depends_on:
+      - backend
   backend:
-    build: .
+    image: jeremye7/pis_backend:latest
     ports:
       - "3000:3000"
     environment:
       - DATABASE_URL=mysql://root:root@db:3306/PISDATABASE
+      - SECRET_KEY= JJJA
     command: >
       sh -c "npx prisma migrate dev && npm run dev"
     depends_on:
       - db
-
+    restart: on-failure
   db:
     image: mariadb:latest
     ports:
