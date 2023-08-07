@@ -2,9 +2,9 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "PROD" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "PROD" ]
 
 jobs:
 
@@ -20,12 +20,12 @@ jobs:
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD 
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag jeremye7/pis_backend:${{ github.run_number }}
+      run: docker build . --file Dockerfile --tag jeremye7/pis_backend_prod:${{ github.run_number }}
       
     - name: Docker Push
       run: |
-        docker push jeremye7/pis_backend:${{ github.run_number }}
-        if [ "${{ github.ref }}" == "refs/heads/master" ]; then
-          docker tag jeremye7/pis_backend:${{ github.run_number }} jeremye7/pis_backend:latest
-          docker push jeremye7/pis_backend:latest
+        docker push jeremye7/pis_backend_prod:${{ github.run_number }}
+        if [ "${{ github.ref }}" == "refs/heads/PROD" ]; then
+          docker tag jeremye7/pis_backend_prod:${{ github.run_number }} jeremye7/pis_backend_prod:latest
+          docker push jeremye7/pis_backend_prod:latest
         fi
