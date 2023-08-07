@@ -29,7 +29,7 @@ router.post('/cuenta/registrar', async (req, res) => {
 
     //Determinar el tipo de persona a registrar y llenar los datos correspondientes
     const personaData = await determinarTipoPersona(req);
-
+    console.log("hola");
     //Crear la persona y la cuenta
     prisma.persona
         .create({
