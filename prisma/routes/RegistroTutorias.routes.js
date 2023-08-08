@@ -25,7 +25,7 @@ router.get('/registro_tutorias/:external_id', async (req, res) => {
     res.json({ msj: "OK", data: registro_tutorias });
 });
 
-router.get('/registro_tutorias/:external_id_docente', async (req, res) => {
+router.get('/registro_tutorias/docente/:external_id_docente', async (req, res) => {
     const { external_id_docente } = req.params;
     const docente = await prisma.docente.findUnique({
         where: {
