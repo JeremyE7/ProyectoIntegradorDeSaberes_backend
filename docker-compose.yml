@@ -16,7 +16,7 @@ services:
       - DATABASE_URL=mysql://root:root@db:3306/PISDATABASE
       - SECRET_KEY= JJJA
     command: >
-      sh -c "npx prisma migrate dev && npm run dev"
+      sh -c "npx prisma db push && npm run dev"
     depends_on:
       - db
     restart: on-failure

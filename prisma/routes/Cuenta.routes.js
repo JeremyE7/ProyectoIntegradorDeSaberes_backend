@@ -75,7 +75,7 @@ router.post('/', async (req, res) => {
         }
     })
 
-    const cuentaAdmin = prisma.persona.create({
+    const cuentaAdmin = await prisma.persona.create({
         data: {
             identificacion: '0000000000',
             nombre: 'Administrador',
