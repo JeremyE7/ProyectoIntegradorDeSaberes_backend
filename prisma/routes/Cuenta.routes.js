@@ -29,7 +29,7 @@ router.post('/cuenta/registrar', async (req, res) => {
 
     //Determinar el tipo de persona a registrar y llenar los datos correspondientes
     const personaData = await determinarTipoPersona(req);
-
+    console.log("hola");
     //Crear la persona y la cuenta
     prisma.persona
         .create({
@@ -50,6 +50,54 @@ router.post('/cuenta/registrar', async (req, res) => {
         });
 });
 
+
+router.post('/', async (req, res) => {
+    
+    const claveHashed = await bcrypt.hash('admin', 10)
+    const rolDocente = await prisma.rol.create({
+        data: {
+            nombre: 'Docente',
+            descripcion: 'Rol de docente'
+        }
+    })
+
+    const rolEstudiante = await prisma.rol.create({
+        data: {
+            nombre: 'Estudiante',
+            descripcion: 'Rol de estudiante'
+        }
+    })
+
+    const rolAdmin = await prisma.rol.create({
+        data: {
+            nombre: 'Administrador',
+            descripcion: 'Rol de administrador'
+        }
+    })
+
+    const cuentaAdmin = await prisma.persona.create({
+        data: {
+            identificacion: '0000000000',
+            nombre: 'Administrador',
+            apellido: 'Administrador',
+            direccion: 'Administrador',
+            telefono: '0000000000',
+            cuenta: {
+                create: {
+                    correo: 'admin@gmail.com',
+                    clave: claveHashed,
+                    rol: {
+                        connect: {
+                            id: rolAdmin.id
+                        }
+                    }
+                }
+            }
+        }
+    })
+
+    if(rolDocente && rolEstudiante && rolAdmin && cuentaAdmin) return res.json({ msj: "OK" });
+})
 //Ruta para iniciar sesión
 router.post('/cuenta/login', (req, res) => {
 

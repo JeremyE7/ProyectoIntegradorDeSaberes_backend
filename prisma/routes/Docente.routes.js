@@ -10,7 +10,9 @@ const router = Router();
 router.get("/docente/listar",validarToken,async(req, res)=>{
     var docentes = await prisma.docente.findMany({
         include:{
-            persona: true
+            persona: true,
+            materia: true
+            
         }
     })
     docentes =  excluirCampos(docentes,['id','personaId','persona.id'])
