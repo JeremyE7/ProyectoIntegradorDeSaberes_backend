@@ -55,6 +55,27 @@ router.get('/tutorias/docente/:external_id_docente', async (req, res) => {
     }
 });
 
+// Obtener todas las tutorías de un estudiante por external_id
+router.get('/tutorias/estudiante/:external_id_estudiante', async (req, res) => {
+    const { external_id_estudiante } = req.params;
+    console.log("AWDawdasdawd");
+
+    try {
+        const estudiante = await prisma.estudiante.findUnique({ where: { externalId: external_id_estudiante } });
+        if (!estudiante) {
+            return res.status(404).json({ msj: "ERROR", error: "Estudiante no encontrado" });
+        }
+        const tutorias = await prisma.tutoria.findMany({ where: { estudiantes: {some:{
+            externalId: external_id_estudiante
+        }} }, include:{estudiantes: { include: {persona: true}}, materia: true} });
+        console.log(tutorias);
+        res.json({ msj: "OK", data: tutorias });
+    } catch (error) {
+        console.error("Error al obtener las tutorías del estudiante:", error);
+        res.status(500).json({ msj: "ERROR", error: "Error al obtener las tutorías del estudiante" });
+    }
+});
+
 // Crear una tutoría para un estudiante por external_id_estudiante
 router.post('/tutorias/estudiante/:external_id_estudiante', async (req, res) => {
     const { error } = validarFormatoCrearTutoriaEstudiante(req.body);
@@ -111,6 +132,8 @@ router.post('/tutorias/estudiante/:external_id_estudiante', async (req, res) => 
             where: {
                 registroTutoriasId: registro_tutorias.id,
                 materiaId: materia.id,
+                nombreTutoria: req.body.nombreTutoria,
+                descripcion: req.body.descripcion,
                 estado: "Espera",
             },
             include: {
@@ -119,26 +142,7 @@ router.post('/tutorias/estudiante/:external_id_estudiante', async (req, res) => 
         });
 
         if (tutoriaCreada[0]) {
-            const estudianteYaSolicitado = tutoriaCreada[0].estudiantes.some((estudiante) => estudiante.externalId === external_id_estudiante);
-            if (estudianteYaSolicitado) {
                 return res.status(400).json({ msj: "ERROR", error: "Estudiante ya solicitó esta tutoria" });
-            }
-
-            await prisma.estudiante.update({
-                where: {
-                    externalId: external_id_estudiante
-                },
-                data: {
-                    tutoria: {
-                        connect: {
-                            id: tutoriaCreada[0].id
-                        }
-                    }
-                }
-            });
-
-            tutoriaCreada[0] = excluirCampos(tutoriaCreada[0], ["id", "registroTutoriasId", "materiaId", "estudiantesId", "materia.id", "registroTutorias.id", "estudiantes.id", "materia.docente.id", "registroTutorias.docente.id", "estudiante.personaId"]);
-            return res.json({ msj: "Se ha añadido el estudiante a la siguiente tutoria", data: tutoriaCreada });
         }
 
         let tutoria = await prisma.tutoria.create({
