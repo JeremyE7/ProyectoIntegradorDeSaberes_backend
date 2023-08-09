@@ -2,6 +2,8 @@ version: '3'
 services:
   frontend:
     image: jeremye7/pis_frontend:latest
+    environment:
+      - URL=http://backend:3000
     ports:
       - 3006:3006
     depends_on:
