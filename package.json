@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon prisma/index.js"
+    "dev": "npx prisma migrate dev --name test && nodemon prisma/index.js"
   },
   "keywords": [],
   "author": "",

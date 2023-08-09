@@ -30,11 +30,11 @@ router.get('/materias/:external_id', async (req, res) => {
     res.json({ msj: "OK", data: materia });
 });
 
-router.get('/materias/:external_id_docente', async (req, res) => {
+router.get('/materias/docente/:external_id_docente', async (req, res) => {
     const { external_id_docente } = req.params;
     const docente = await prisma.docente.findUnique({
         where: {
-            external_id: external_id_docente
+            externalId: external_id_docente
         }
     }).catch((err) => {
         res.status(404).json({ msj: "ERROR", error: "Docente no encontrado" });
@@ -42,7 +42,7 @@ router.get('/materias/:external_id_docente', async (req, res) => {
     );
     const materias = await prisma.materia.findMany({
         where: {
-            id_docente: docente.id
+            docenteId: docente.id
         }
     }).catch((err) => {
         res.status(404).json({ msj: "ERROR", error: "Materias no encontradas" });

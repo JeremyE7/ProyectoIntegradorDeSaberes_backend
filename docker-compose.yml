@@ -1,16 +1,24 @@
 version: '3'
 services:
+  frontend:
+    image: jeremye7/pis_frontend:latest
+    environment:
+      - URL=http://backend:3000
+    ports:
+      - 3006:3006
+    depends_on:
+      - backend
   backend:
-    build: .
+    image: jeremye7/pis_backend:latest
     ports:
       - "3000:3000"
     environment:
       - DATABASE_URL=mysql://root:root@db:3306/PISDATABASE
-    command: >
-      sh -c "npx prisma migrate dev && npm run dev"
+      - SECRET_KEY= JJJA
+    command: "npm run dev"
     depends_on:
       - db
-
+    restart: on-failure
   db:
     image: mariadb:latest
     ports:
@@ -19,6 +27,10 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: PISDATABASE
-      MYSQL_WAIT_TIMEOUT: 600  # Tiempo de espera de espera en segundos (10 minutos)
-      MYSQL_INTERACTIVE_TIMEOUT: 600  # Tiempo de espera interactivo en segundos (10 minutos)
-      MYSQL_INITDB_SKIP_TZINFO: 1  # No establecer la zona horaria del servidor
+      MYSQL_WAIT_TIMEOUT: 600  
+      MYSQL_INTERACTIVE_TIMEOUT: 600  
+      MYSQL_INITDB_SKIP_TZINFO: 1  
+    volumes:
+      - db_data:/var/lib/mysql
+volumes:
+    db_data:
