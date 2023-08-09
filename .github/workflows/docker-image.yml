@@ -25,7 +25,7 @@ jobs:
     - name: Docker Push
       run: |
         docker push jeremye7/pis_backend_preprod:${{ github.run_number }}
-        if [ "${{ github.ref }}" == "refs/heads/master" ]; then
+        if [ "${{ github.ref }}" == "refs/heads/PREPROD" ]; then
           docker tag jeremye7/pis_backend_preprod:${{ github.run_number }} jeremye7/pis_backend_preprod:latest
           docker push jeremye7/pis_backend_preprod:latest
         fi
