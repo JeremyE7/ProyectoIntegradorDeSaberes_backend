@@ -30,7 +30,7 @@ model Cuenta{
   externalId String   @unique @default(uuid())
   correo String @unique
   clave String
-  persona   Persona  @relation(fields: [personaId], references: [id])
+  persona   Persona  @relation(fields: [personaId], references: [id], onDelete: Cascade)
   personaId Int @unique
   rol_id Int 
   rol Rol @relation(fields: [rol_id], references: [id])
@@ -48,7 +48,7 @@ model Docente {
   id        Int      @id @default(autoincrement())
   externalId String   @unique @default(uuid())
   titulo String
-  persona   Persona  @relation(fields: [personaId], references: [id])
+  persona   Persona  @relation(fields: [personaId], references: [id], onDelete: Cascade)
   personaId Int @unique
   registroTutorias RegistroTutorias?
   materia Materia[]
@@ -61,7 +61,7 @@ model Estudiante {
   ciclo String
   paralelo String
   carrera String
-  persona   Persona  @relation(fields: [personaId], references: [id])
+  persona   Persona  @relation(fields: [personaId], references: [id], onDelete: Cascade)
   personaId Int @unique
   tutoria Tutoria[]
 }
@@ -70,7 +70,7 @@ model RegistroTutorias{
   id        Int      @id @default(autoincrement())
   externalId String   @unique @default(uuid())
   periodoAcademico String
-  docente  Docente  @relation(fields: [docenteId], references: [id])
+  docente  Docente  @relation(fields: [docenteId], references: [id], onDelete: Cascade)
   docenteId Int @unique
   tutorias Tutoria[]
 }
@@ -88,7 +88,7 @@ model Tutoria{
   materia Materia  @relation(fields: [materiaId], references: [id])
   materiaId Int
   estudiantes Estudiante[]
-  docente Docente @relation(fields: [docenteId], references: [id])
+  docente Docente @relation(fields: [docenteId], references: [id], onDelete: Cascade)
   docenteId Int
 }
 
@@ -96,7 +96,7 @@ model Materia{
   id        Int      @id @default(autoincrement())
   externalId String   @unique @default(uuid())
   nombre String
-  docente  Docente  @relation(fields: [docenteId], references: [id])
+  docente  Docente  @relation(fields: [docenteId], references: [id], onDelete: Cascade)
   docenteId Int 
   tutoria Tutoria[]
 }

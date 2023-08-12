@@ -10,10 +10,11 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { validarToken } from "../middlewares/tokenLogic.js";
 import { verificarCedulaUnica } from "../middlewares/verificarCedulaUnica.js";
+import { verificarCorreoUnico } from "../middlewares/verificarCorreoUnico.js";
 const router = Router();
 
 //Ruta para registrar una nueva cuenta
-router.post('/cuenta/registrar', async (req, res) => {
+router.post('/cuenta/registrar',verificarCedulaUnica, verificarCorreoUnico, async (req, res) => {
 
     //Verificar que no se intente crear una cuenta de tipo docente y estudiante a la vez
     const { docente, estudiante } = req.body;
@@ -190,7 +191,7 @@ router.get('/cuenta/:external_id', validarToken, (req, res) => {
 router.put('/cuenta/:external_id', validarToken, verificarCedulaUnica, async (req, res) => {
 
     if (req.body.clave) req.body.clave = await bcrypt.hash(req.body.clave, 10)
-
+    console.log(req.body);
     const { error } = validarFormatoEdicion(req);
 
     if (error) {
@@ -260,6 +261,65 @@ router.put('/cuenta/:external_id', validarToken, verificarCedulaUnica, async (re
         console.log(error);
         if (error.meta && error.meta.cause.includes("Rol")) return res.status(400).json({ msj: "Error al editar la cuenta", error: "Rol no encontrado" });
         res.status(500).json({ msj: "Error al editar la cuenta", error: "Cuenta no encontrada" });
+    })
+})
+
+router.put('/cuenta/:external_id/:rol', validarToken, async (req, res) => {
+    const cuenta = await prisma.cuenta.update({
+        where: {
+            externalId: req.params.external_id
+        },
+        data: {
+            rol: {
+                connect: {
+                    nombre: req.params.rol
+                }
+            }
+        },
+        include: {
+            rol: true,
+            persona: {
+                include: {
+                    docente: true,
+                    estudiante: true
+                }
+            }
+        }
+    }).then((data) => {
+        data = excluirCampos(data, [
+            'id', 'rol_id', 'personaId', 'persona.id', 'persona.docente.personaId', 'persona.estudiante.personaId', 'persona.docente.id', 'persona.estudiante.id', 'rol.id'])
+        res.json({ msj: "Rol asignado con exito", data: data });
+    }).catch((error) => {
+        console.log(error);
+        if (error.meta && error.meta.cause.includes("Rol")) return res.status(400).json({ msj: "Error al asignar el rol", error: "Rol no encontrado" });
+        res.status(500).json({ msj: "Error al asignar el rol", error: "Cuenta no encontrada" });
+    })
+})
+
+router.delete('/cuenta/:external_id', validarToken, async (req, res) => {
+    const cuenta = await prisma.cuenta.findUnique({
+        where: {
+            externalId: req.params.external_id
+        },
+        include: {
+            rol: true,
+            persona: {
+                include: {
+                    docente: true,
+                    estudiante: true
+                }
+            }
+        }
+    })
+    prisma.persona.delete({
+        where: {
+            externalId: cuenta.persona.externalId
+        }
+    }).then((data) => {
+            res.json({ msj: "Cuenta eliminada con exito", data: data });
+    }).catch((error) => {
+        console.log(error);
+        res.status(500).json({ msj: "Error al eliminar la cuenta", error: "Cuenta no encontrada" });
     })
 })
 
