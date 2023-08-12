@@ -11,7 +11,19 @@ import jwt from 'jsonwebtoken';
 import { validarToken } from "../middlewares/tokenLogic.js";
 import { verificarCedulaUnica } from "../middlewares/verificarCedulaUnica.js";
 import { verificarCorreoUnico } from "../middlewares/verificarCorreoUnico.js";
+import multer from 'multer';
 const router = Router();
+
+const storage = multer.diskStorage({
+    destination: 'uploads/firmas/', // Carpeta de destino para las imágenes de firma
+    filename: (req, file, cb) => {
+      // Genera un nombre de archivo único
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, uniqueSuffix + '-' + file.originalname);
+    }
+  });
+
+const upload = multer({ storage: storage });
 
 //Ruta para registrar una nueva cuenta
 router.post('/cuenta/registrar',verificarCedulaUnica, verificarCorreoUnico, async (req, res) => {
@@ -31,6 +43,7 @@ router.post('/cuenta/registrar',verificarCedulaUnica, verificarCorreoUnico, asyn
     //Determinar el tipo de persona a registrar y llenar los datos correspondientes
     const personaData = await determinarTipoPersona(req);
     console.log("hola");
+
     //Crear la persona y la cuenta
     prisma.persona
         .create({
@@ -320,6 +333,24 @@ router.delete('/cuenta/:external_id', validarToken, async (req, res) => {
     }).catch((error) => {
         console.log(error);
         res.status(500).json({ msj: "Error al eliminar la cuenta", error: "Cuenta no encontrada" });
+    })
+})
+
+router.put('/persona/firma/:external_id',  upload.single('firma'), async (req, res) => {
+    console.log("=============", req.file);
+    console.log(req.params.external_id);
+    const persona = await prisma.persona.update({
+        where: {
+            externalId: req.params.external_id
+        },
+        data: {
+            firma: req.file.path
+        }
+    }).then((data) => {
+        res.json({ msj: "Firma asignada con exito", data: data });
+    }).catch((error) => {
+        console.log(error);
+        res.status(500).json({ msj: "Error al asignar la firma", error: "Cuenta no encontrada" });
     })
 })
 

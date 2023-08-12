@@ -23,6 +23,7 @@ model Persona{
   cuenta   Cuenta?
   docente Docente?
   estudiante Estudiante?
+  firma String @default("")
 }
 
 model Cuenta{
@@ -90,6 +91,11 @@ model Tutoria{
   estudiantes Estudiante[]
   docente Docente @relation(fields: [docenteId], references: [id], onDelete: Cascade)
   docenteId Int
+  valoracion Int?
+  tipoReunionTutoria String?
+  observacionEstudiante String?
+  observacionDocente String?
+  justificacion String?
 }
 
 model Materia{

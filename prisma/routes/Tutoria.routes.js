@@ -78,6 +78,7 @@ router.get('/tutorias/estudiante/:external_id_estudiante', async (req, res) => {
 
 // Crear una tutoría para un estudiante por external_id_estudiante
 router.post('/tutorias/estudiante/:external_id_estudiante', async (req, res) => {
+    console.log(req.body);
     const { error } = validarFormatoCrearTutoriaEstudiante(req.body);
     const { external_id_estudiante } = req.params;
 
@@ -135,6 +136,7 @@ router.post('/tutorias/estudiante/:external_id_estudiante', async (req, res) => 
                 nombreTutoria: req.body.nombreTutoria,
                 descripcion: req.body.descripcion,
                 estado: "Espera",
+                tipoReunionTutoria: req.body.tipoReunionTutoria,
             },
             include: {
                 estudiantes: true
@@ -170,6 +172,7 @@ router.post('/tutorias/estudiante/:external_id_estudiante', async (req, res) => 
                 },
                 nombreTutoria: req.body.nombreTutoria,
                 descripcion: req.body.descripcion,
+                tipoReunionTutoria: req.body.tipoReunionTutoria,
             },
             include: {
                 materia: true,
@@ -205,6 +208,7 @@ router.put('/tutorias/docente/aceptar/:external_id', async (req, res) => {
             data: {
                 fechaInicio: fecha,
                 estado: "Aceptada",
+                justificacion: req.body.justificacion,
             }
         });
         res.json({ msj: "OK", data: tutoria });
@@ -229,6 +233,7 @@ router.put('/tutorias/estado/:external_id', async (req, res) => {
             data: {
                 estado: estado,
                 fechaFinalizacion: fechaFinalizacion,
+                justificacion: req.body.justificacion
             }
         });
         res.json({ msj: "OK", data: tutoria });

@@ -9,7 +9,7 @@ export const determinarTipoPersona = async (req) => {
 
     const { docente, estudiante } = req.body;
     const claveHashed = await bcrypt.hash(req.body.clave, 10)
-
+    console.log(req.file);
     const personaData = {
         nombre: req.body.nombre,
         apellido: req.body.apellido,
