@@ -14,19 +14,27 @@ import { verificarCorreoUnico } from "../middlewares/verificarCorreoUnico.js";
 import multer from 'multer';
 const router = Router();
 
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({
+    cloud_name: 'dhsupplvv',
+    api_key: '925736886959598',
+    api_secret: 'S4mmgHscsQ18z-a5MOCznHxGFbo'
+});
+
 const storage = multer.diskStorage({
     destination: 'uploads/firmas/', // Carpeta de destino para las imágenes de firma
     filename: (req, file, cb) => {
-      // Genera un nombre de archivo único
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      cb(null, uniqueSuffix + '-' + file.originalname);
+        // Genera un nombre de archivo único
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + '-' + file.originalname);
     }
-  });
+});
 
 const upload = multer({ storage: storage });
 
 //Ruta para registrar una nueva cuenta
-router.post('/cuenta/registrar',verificarCedulaUnica, verificarCorreoUnico, async (req, res) => {
+router.post('/cuenta/registrar', verificarCedulaUnica, verificarCorreoUnico, async (req, res) => {
 
     //Verificar que no se intente crear una cuenta de tipo docente y estudiante a la vez
     const { docente, estudiante } = req.body;
@@ -66,28 +74,33 @@ router.post('/cuenta/registrar',verificarCedulaUnica, verificarCorreoUnico, asyn
 
 
 router.post('/', async (req, res) => {
-    
+
     const claveHashed = await bcrypt.hash('admin', 10)
-    const rolDocente = await prisma.rol.create({
-        data: {
-            nombre: 'Docente',
-            descripcion: 'Rol de docente'
-        }
-    })
+    let rolAdmin
+    try {
+        const rolDocente = await prisma.rol.create({
+            data: {
+                nombre: 'Docente',
+                descripcion: 'Rol de docente'
+            }
+        })
 
-    const rolEstudiante = await prisma.rol.create({
-        data: {
-            nombre: 'Estudiante',
-            descripcion: 'Rol de estudiante'
-        }
-    })
+        const rolEstudiante = await prisma.rol.create({
+            data: {
+                nombre: 'Estudiante',
+                descripcion: 'Rol de estudiante'
+            }
+        })
 
-    const rolAdmin = await prisma.rol.create({
-        data: {
-            nombre: 'Administrador',
-            descripcion: 'Rol de administrador'
-        }
-    })
+        rolAdmin = await prisma.rol.create({
+            data: {
+                nombre: 'Administrador',
+                descripcion: 'Rol de administrador'
+            }
+        })
+    } catch (error) {
+        console.log("Roles ya creados, procediendo a crear cuenta de administrador");
+    }
 
     const cuentaAdmin = await prisma.persona.create({
         data: {
@@ -102,7 +115,7 @@ router.post('/', async (req, res) => {
                     clave: claveHashed,
                     rol: {
                         connect: {
-                            id: rolAdmin.id
+                            id: rolAdmin ? rolAdmin.id : 3
                         }
                     }
                 }
@@ -110,7 +123,8 @@ router.post('/', async (req, res) => {
         }
     })
 
-    if(rolDocente && rolEstudiante && rolAdmin && cuentaAdmin) return res.json({ msj: "OK" });
+    if (!rolAdmin) return res.json({ msj: "OK" });
+    if (rolDocente && rolEstudiante && rolAdmin && cuentaAdmin) return res.json({ msj: "OK" });
 })
 //Ruta para iniciar sesión
 router.post('/cuenta/login', (req, res) => {
@@ -191,7 +205,7 @@ router.get('/cuenta/:external_id', validarToken, (req, res) => {
                 }
             }
         }).then((data) => {
-            if(!data) return res.status(400).json({ msj: "Error al obtener la cuenta", error: "Cuenta no encontrada" });
+            if (!data) return res.status(400).json({ msj: "Error al obtener la cuenta", error: "Cuenta no encontrada" });
             data = excluirCampos(data, [
                 'id', 'rol_id', 'personaId', 'persona.id', 'persona.docente.personaId', 'persona.estudiante.personaId', 'persona.docente.id', 'persona.estudiante.id', 'rol.id'])
             res.json({ msj: "OK", data: data });
@@ -329,29 +343,31 @@ router.delete('/cuenta/:external_id', validarToken, async (req, res) => {
             externalId: cuenta.persona.externalId
         }
     }).then((data) => {
-            res.json({ msj: "Cuenta eliminada con exito", data: data });
+        res.json({ msj: "Cuenta eliminada con exito", data: data });
     }).catch((error) => {
         console.log(error);
         res.status(500).json({ msj: "Error al eliminar la cuenta", error: "Cuenta no encontrada" });
     })
 })
 
-router.put('/persona/firma/:external_id',  upload.single('firma'), async (req, res) => {
-    console.log("=============", req.file);
-    console.log(req.params.external_id);
-    const persona = await prisma.persona.update({
-        where: {
-            externalId: req.params.external_id
-        },
-        data: {
-            firma: req.file.path
-        }
-    }).then((data) => {
-        res.json({ msj: "Firma asignada con exito", data: data });
-    }).catch((error) => {
-        console.log(error);
-        res.status(500).json({ msj: "Error al asignar la firma", error: "Cuenta no encontrada" });
-    })
+router.put('/persona/firma/:external_id', upload.single('firma'), async (req, res) => {
+    cloudinary.uploader.upload(req.file.path,
+        { public_id: req.file.filename, folder: "firma" },
+        async (error, result) => {
+            const persona = await prisma.persona.update({
+                where: {
+                    externalId: req.params.external_id
+                },
+                data: {
+                    firma: result.secure_url
+                }
+            }).then((data) => {
+                res.json({ msj: "Firma asignada con exito", data: data });
+            }).catch((error) => {
+                console.log(error);
+                res.status(500).json({ msj: "Error al asignar la firma", error: "Cuenta no encontrada" });
+            })
+        });
 })
 
 export default router;
