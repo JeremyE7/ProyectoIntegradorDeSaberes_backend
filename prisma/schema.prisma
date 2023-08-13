@@ -86,7 +86,7 @@ model Tutoria{
   descripcion String?
   registroTutorias RegistroTutorias  @relation(fields: [registroTutoriasId], references: [id])
   registroTutoriasId Int
-  materia Materia  @relation(fields: [materiaId], references: [id])
+  materia Materia  @relation(fields: [materiaId], references: [id], onDelete: Cascade)
   materiaId Int
   estudiantes Estudiante[]
   docente Docente @relation(fields: [docenteId], references: [id], onDelete: Cascade)
