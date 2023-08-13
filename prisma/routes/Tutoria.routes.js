@@ -46,7 +46,7 @@ router.get('/tutorias/docente/:external_id_docente', async (req, res) => {
         if (!docente) {
             return res.status(404).json({ msj: "ERROR", error: "Docente no encontrado" });
         }
-        const tutorias = await prisma.tutoria.findMany({ where: { docenteId: docente.id }, include:{estudiantes: { include: {persona: true}}, materia: true} });
+        const tutorias = await prisma.tutoria.findMany({ where: { docenteId: docente.id }, include:{estudiantes: { include: {persona: true}}, docente: { include: {persona: true}}, materia: true} });
         console.log(tutorias);
         res.json({ msj: "OK", data: tutorias });
     } catch (error) {
@@ -67,7 +67,7 @@ router.get('/tutorias/estudiante/:external_id_estudiante', async (req, res) => {
         }
         const tutorias = await prisma.tutoria.findMany({ where: { estudiantes: {some:{
             externalId: external_id_estudiante
-        }} }, include:{estudiantes: { include: {persona: true}}, materia: true} });
+        }} }, include:{estudiantes: { include: {persona: true}},docente: { include: {persona: true}}, materia: true} });
         console.log(tutorias);
         res.json({ msj: "OK", data: tutorias });
     } catch (error) {

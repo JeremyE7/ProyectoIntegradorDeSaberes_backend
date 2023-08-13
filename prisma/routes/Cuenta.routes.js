@@ -215,7 +215,7 @@ router.get('/cuenta/:external_id', validarToken, (req, res) => {
     }
 })
 
-router.put('/cuenta/:external_id', validarToken, verificarCedulaUnica, async (req, res) => {
+router.put('/cuenta/:external_id', validarToken, verificarCedulaUnica, verificarCorreoUnico, async (req, res) => {
 
     if (req.body.clave) req.body.clave = await bcrypt.hash(req.body.clave, 10)
     console.log(req.body);
@@ -232,9 +232,13 @@ router.put('/cuenta/:external_id', validarToken, verificarCedulaUnica, async (re
         return res.status(400).json({ msj: "Hace falta un campo en la peticion o algun campo es incorrecto", error: errorMessage });
     }
 
-    const cuenta = await prisma.cuenta.findUnique({
+
+
+    const cuenta = await prisma.cuenta.findMany({
         where: {
-            externalId: req.params.external_id
+            persona:{
+                externalId: req.params.external_id
+            }
         },
         include: {
             rol: true,
@@ -246,12 +250,12 @@ router.put('/cuenta/:external_id', validarToken, verificarCedulaUnica, async (re
             }
         }
     })
-
-    if (!cuenta) return res.status(400).json({ msj: "Error al editar la cuenta", error: "Cuenta no encontrada" });
-
+    console.log(cuenta[0]);
+    if (!cuenta[0]) return res.status(400).json({ msj: "Error al editar la cuenta", error: "Cuenta no encontrada" });
+    
     prisma.cuenta.update({
         where: {
-            externalId: req.params.external_id
+            externalId: cuenta[0].externalId
         },
         data: req.body.rol ? {
             correo: req.body.correo,
@@ -262,13 +266,13 @@ router.put('/cuenta/:external_id', validarToken, verificarCedulaUnica, async (re
                 }
             },
             persona: {
-                update: determinarEdicionDocenteEstudiante(cuenta, req)
+                update: determinarEdicionDocenteEstudiante(cuenta[0], req)
             }
         } : {
             correo: req.body.correo,
             clave: req.body.clave,
             persona: {
-                update: determinarEdicionDocenteEstudiante(cuenta, req)
+                update: determinarEdicionDocenteEstudiante(cuenta[0], req)
             }
         },
         include: {
