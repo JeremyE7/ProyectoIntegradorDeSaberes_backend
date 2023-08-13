@@ -46,7 +46,7 @@ router.get('/tutorias/docente/:external_id_docente', async (req, res) => {
         if (!docente) {
             return res.status(404).json({ msj: "ERROR", error: "Docente no encontrado" });
         }
-        const tutorias = await prisma.tutoria.findMany({ where: { docenteId: docente.id }, include:{estudiantes: { include: {persona: true}}, materia: true} });
+        const tutorias = await prisma.tutoria.findMany({ where: { docenteId: docente.id }, include:{estudiantes: { include: {persona: true}}, docente: { include: {persona: true}}, materia: true} });
         console.log(tutorias);
         res.json({ msj: "OK", data: tutorias });
     } catch (error) {
@@ -67,7 +67,7 @@ router.get('/tutorias/estudiante/:external_id_estudiante', async (req, res) => {
         }
         const tutorias = await prisma.tutoria.findMany({ where: { estudiantes: {some:{
             externalId: external_id_estudiante
-        }} }, include:{estudiantes: { include: {persona: true}}, materia: true} });
+        }} }, include:{estudiantes: { include: {persona: true}},docente: { include: {persona: true}}, materia: true} });
         console.log(tutorias);
         res.json({ msj: "OK", data: tutorias });
     } catch (error) {
@@ -78,6 +78,7 @@ router.get('/tutorias/estudiante/:external_id_estudiante', async (req, res) => {
 
 // Crear una tutoría para un estudiante por external_id_estudiante
 router.post('/tutorias/estudiante/:external_id_estudiante', async (req, res) => {
+    console.log(req.body);
     const { error } = validarFormatoCrearTutoriaEstudiante(req.body);
     const { external_id_estudiante } = req.params;
 
@@ -135,6 +136,7 @@ router.post('/tutorias/estudiante/:external_id_estudiante', async (req, res) => 
                 nombreTutoria: req.body.nombreTutoria,
                 descripcion: req.body.descripcion,
                 estado: "Espera",
+                tipoReunionTutoria: req.body.tipoReunionTutoria,
             },
             include: {
                 estudiantes: true
@@ -170,6 +172,7 @@ router.post('/tutorias/estudiante/:external_id_estudiante', async (req, res) => 
                 },
                 nombreTutoria: req.body.nombreTutoria,
                 descripcion: req.body.descripcion,
+                tipoReunionTutoria: req.body.tipoReunionTutoria,
             },
             include: {
                 materia: true,
@@ -205,6 +208,7 @@ router.put('/tutorias/docente/aceptar/:external_id', async (req, res) => {
             data: {
                 fechaInicio: fecha,
                 estado: "Aceptada",
+                justificacion: req.body.justificacion,
             }
         });
         res.json({ msj: "OK", data: tutoria });
@@ -221,7 +225,6 @@ router.put('/tutorias/estado/:external_id', async (req, res) => {
         return res.status(400).json({ msj: "Falta algun campo o es incorrecto", error: error.details[0].message });
     }
     const { estado, fechaFinalizacion } = req.body;
-    console.log(estado);
     console.log(req.params.external_id);
     try {
         const tutoria = await prisma.tutoria.update({
@@ -229,6 +232,10 @@ router.put('/tutorias/estado/:external_id', async (req, res) => {
             data: {
                 estado: estado,
                 fechaFinalizacion: fechaFinalizacion,
+                justificacion: req.body.justificacion,
+                observacionDocente: req.body.observacionDocente,
+                valoracion: req.body.valoracion,
+                observacionEstudiante: req.body.observacionEstudiante,
             }
         });
         res.json({ msj: "OK", data: tutoria });

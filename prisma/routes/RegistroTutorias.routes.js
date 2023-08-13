@@ -26,18 +26,23 @@ router.get('/registro_tutorias/:external_id', async (req, res) => {
 });
 
 router.get('/registro_tutorias/docente/:external_id_docente', async (req, res) => {
-    const { external_id_docente } = req.params;
+    const { external_id_docente } = req.params
     const docente = await prisma.docente.findUnique({
         where: {
-            external_id: external_id_docente
-        }
+            externalId: external_id_docente
+        },
     }).catch((err) => {
         res.status(404).json({ msj: "ERROR", error: "Docente no encontrado" });
     }
     );
-    const registro_tutorias = await prisma.registro_tutorias.findMany({
+    const registro_tutorias = await prisma.registroTutorias.findMany({
         where: {
-            id_docente: docente.id
+            docenteId: docente.id
+        },
+        include:{
+            tutorias: {
+                include:{estudiantes:true, materia:true}
+            }
         }
     }).catch((err) => {
         res.status(404).json({ msj: "ERROR", error: "Registro de tutorias no encontradas" });

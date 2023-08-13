@@ -3,7 +3,7 @@ services:
   frontend:
     image: jeremye7/pis_frontend:latest
     environment:
-      - URL=http://backend:3000
+      - REACT_APP_API_BASE_URL=http://localhost:3000/api/v1
     ports:
       - 3006:3006
     depends_on:
