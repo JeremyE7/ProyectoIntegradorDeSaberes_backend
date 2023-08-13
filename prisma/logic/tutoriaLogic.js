@@ -28,9 +28,9 @@ export const validarCambiarEstadoTutoriaDocente = (tutoria) => {
         estado: Joi.string().valid('Semirealizada','Rechazada', 'Realizada').required(),
         fechaFinalizacion: tutoria.estado === "Semirealizada" ? Joi.date().iso().required(): Joi.date().iso().optional(),
         justificacion: tutoria.estado === "Rechazada" ? Joi.string().required(): Joi.string().optional(),
-        observacionDocente: Joi.string().optional(),
+        observacionDocente: Joi.string().optional().empty(''),
         valoracion: tutoria.estado === "Realizada" ? Joi.number().min(1).max(5).required(): Joi.number().min(1).max(5).optional(),
-        observacionEstudiante: Joi.string().optional(),
+        observacionEstudiante: Joi.string().optional().empty(''),
     })
 
     return schema.validate(tutoria);
