@@ -225,7 +225,6 @@ router.put('/tutorias/estado/:external_id', async (req, res) => {
         return res.status(400).json({ msj: "Falta algun campo o es incorrecto", error: error.details[0].message });
     }
     const { estado, fechaFinalizacion } = req.body;
-    console.log(estado);
     console.log(req.params.external_id);
     try {
         const tutoria = await prisma.tutoria.update({
@@ -233,7 +232,10 @@ router.put('/tutorias/estado/:external_id', async (req, res) => {
             data: {
                 estado: estado,
                 fechaFinalizacion: fechaFinalizacion,
-                justificacion: req.body.justificacion
+                justificacion: req.body.justificacion,
+                observacionDocente: req.body.observacionDocente,
+                valoracion: req.body.valoracion,
+                observacionEstudiante: req.body.observacionEstudiante,
             }
         });
         res.json({ msj: "OK", data: tutoria });
