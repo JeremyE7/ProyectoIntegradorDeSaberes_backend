@@ -297,7 +297,7 @@ router.put('/tutorias/estado/:external_id', async (req, res) => {
         }else if(estado === "Realizada"){
             await sendEmail(tutoria.docente.persona.cuenta.correo, "Tutoría realizada", `El estudiante ${tutoria.estudiantes[0].persona.nombre} ${tutoria.estudiantes[0].persona.apellido} ha valorado la tutoría de nombre ${tutoria.nombreTutoria}, por favor ingrese a la plataforma para revisar los detalles.`)
         }else if(estado === "Rechazada"){
-            await sendEmail(tutoria.estudiantes[0].persona.cuenta.correo, "Tutoría cancelada", `La tutoria de la materia ${tutoria.materia.nombre} asignada para la fecha ${new Date(tutoria.fechaInicio).toLocaleString()} ha sido cancelada, por favor ingrese a la plataforma para revisar los detalles.`)
+            await sendEmail(tutoria.estudiantes[0].persona.cuenta.correo, "Tutoría cancelada", `La tutoria de la materia ${tutoria.materia.nombre} ${tutoria.fechaInicio ? `asignada para la fecha ${new Date(tutoria.fechaInicio).toLocaleString()}`: ''} ha sido cancelada, por favor ingrese a la plataforma para revisar los detalles.`)
             await sendEmail(tutoria.docente.persona.cuenta.correo, "Tutoría cancelada", `La tutoria de la materia ${tutoria.materia.nombre} asignada para la fecha ${new Date(tutoria.fechaInicio).toLocaleString()} ha sido cancelada, por el motivo: ${tutoria.justificacion} por favor ingrese a la plataforma para revisar los detalles.`)
         }
 
