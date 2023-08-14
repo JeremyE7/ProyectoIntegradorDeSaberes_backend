@@ -41,7 +41,8 @@ router.get('/registro_tutorias/docente/:external_id_docente', async (req, res) =
         },
         include:{
             tutorias: {
-                include:{estudiantes:true, materia:true}
+                include:{
+                    estudiantes:{include:{persona:true}}, materia:true}
             }
         }
     }).catch((err) => {
@@ -76,7 +77,6 @@ router.post('/registro_tutorias', async (req, res) => {
         return res.status(400).json({ msj: "Hace falta un campo en la peticion", error: error.details[0].message });
     }
 
-    console.log("adawd");
 
     prisma.registroTutorias.create({
         data: {

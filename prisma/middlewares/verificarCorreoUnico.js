@@ -1,7 +1,6 @@
 import { prisma } from "../db.js";
 
 export const verificarCorreoUnico = async (req, res, next) => {
-    console.log(req.body);
     if (req.body.correo) {
         const cuenta = await prisma.cuenta.findMany({
             where: {

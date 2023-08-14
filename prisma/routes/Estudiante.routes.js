@@ -51,7 +51,6 @@ router.get("/estudiante/buscar/:tipo/:parametro", validarToken, async(req, res)=
         default:
             return res.json({msg:"Parametro no valido"})           
     }
-    console.log(estudiante)
     return (estudiante) ? res.json(excluirCampos(estudiante,['id','personaId','persona.id'])) : res.json({msg:"Estudiante no encontrado"})
 })
 export default router;
