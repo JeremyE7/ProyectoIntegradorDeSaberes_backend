@@ -9,7 +9,6 @@ export const determinarTipoPersona = async (req) => {
 
     const { docente, estudiante } = req.body;
     const claveHashed = await bcrypt.hash(req.body.clave, 10)
-    console.log(req.file);
     const personaData = {
         nombre: req.body.nombre,
         apellido: req.body.apellido,
@@ -110,7 +109,6 @@ export const validarFormatoEdicion = (req, cuenta) => {
 
 export const determinarEdicionDocenteEstudiante = (cuenta, req) => {
     if (cuenta.persona.docente && req.body.persona.docente){
-        console.log("docente");
         return {
             nombre: req.body.persona.nombre,
             apellido: req.body.persona.apellido,

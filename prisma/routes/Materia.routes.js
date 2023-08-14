@@ -70,7 +70,6 @@ router.post('/materias', async (req, res) => {
     }
     );
 
-    console.log(docente);
 
     let materia = await prisma.materia.create({
         data: {
@@ -97,7 +96,6 @@ router.post('/materias', async (req, res) => {
 router.put('/materias/:external_id', async (req, res) => {
     const { external_id } = req.params;
     const { nombre, external_id_docente } = req.body;
-    console.log(external_id_docente);
     const docente = await prisma.docente.findUnique({
         where: {
             externalId: external_id_docente
@@ -107,7 +105,6 @@ router.put('/materias/:external_id', async (req, res) => {
         return res.status(404).json({ msj: "ERROR", error: "Docente no encontrado" });
     }
     );
-    console.log(docente);
     const materia = await prisma.materia.update({
         where: {
             externalId: external_id

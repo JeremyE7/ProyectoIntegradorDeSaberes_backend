@@ -77,7 +77,6 @@ router.post('/registro_tutorias', async (req, res) => {
         return res.status(400).json({ msj: "Hace falta un campo en la peticion", error: error.details[0].message });
     }
 
-    console.log("adawd");
 
     prisma.registroTutorias.create({
         data: {

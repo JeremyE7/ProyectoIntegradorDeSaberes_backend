@@ -50,7 +50,6 @@ router.post('/cuenta/registrar', verificarCedulaUnica, verificarCorreoUnico, asy
 
     //Determinar el tipo de persona a registrar y llenar los datos correspondientes
     const personaData = await determinarTipoPersona(req);
-    console.log("hola");
 
     //Crear la persona y la cuenta
     prisma.persona
@@ -218,7 +217,6 @@ router.get('/cuenta/:external_id', validarToken, (req, res) => {
 router.put('/cuenta/:external_id', validarToken, verificarCedulaUnica, verificarCorreoUnico, async (req, res) => {
 
     if (req.body.clave) req.body.clave = await bcrypt.hash(req.body.clave, 10)
-    console.log(req.body);
     const { error } = validarFormatoEdicion(req);
 
     if (error) {
@@ -250,7 +248,6 @@ router.put('/cuenta/:external_id', validarToken, verificarCedulaUnica, verificar
             }
         }
     })
-    console.log(cuenta[0]);
     if (!cuenta[0]) return res.status(400).json({ msj: "Error al editar la cuenta", error: "Cuenta no encontrada" });
     
     prisma.cuenta.update({
