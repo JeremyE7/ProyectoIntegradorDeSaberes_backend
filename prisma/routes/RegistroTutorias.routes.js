@@ -41,7 +41,8 @@ router.get('/registro_tutorias/docente/:external_id_docente', async (req, res) =
         },
         include:{
             tutorias: {
-                include:{estudiantes:true, materia:true}
+                include:{
+                    estudiantes:{include:{persona:true}}, materia:true}
             }
         }
     }).catch((err) => {
